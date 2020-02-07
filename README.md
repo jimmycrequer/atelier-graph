@@ -2,7 +2,23 @@
 
 ## Import the data
 
-### Materials
+```
+LOAD CSV FROM "file:///import.csv" AS row
+
+MERGE (i:Item {name: row[0]})
+
+WITH i, row
+UNWIND split(row[1], "|") AS category
+MERGE (cat:Category {name: category})
+MERGE (i)-[:IS]->(cat)
+
+WITH i, row
+UNWIND split(row[2], "|") AS recipe
+MERGE (c {name: recipe})
+MERGE (c)-[:NEEDS]->(i)
+```
+
+### OLD
 
 ```
 LOAD CSV FROM "file:///materials-escha-and-logy.csv" AS row
@@ -25,4 +41,10 @@ MERGE (mo:Monster {name: monster})
 MERGE (m)-[:DROP_FROM]->(mo)
 
 RETURN *
+```
+
+## Queries
+
+```
+MATCH (n) WHERE not(exists((n)-[:NEEDS]->())) RETURN n.name
 ```
