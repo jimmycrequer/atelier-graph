@@ -8,7 +8,7 @@
     require('dotenv').config()
 
 
-    const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
+    // const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
 
     const BASE_URL = 'https://barrelwisdom.com'
 
@@ -17,7 +17,7 @@
     await importRecipes()
 
 
-    await driver.close()
+    // await driver.close()
 
 
     async function importMaterials() {
@@ -49,23 +49,27 @@
                     .map((j, el) => el.data)
                     .toArray()
     
-            console.log(`Finished: ${m.name} (${i+1}/${materials.length})`)
+            // console.log(`Finished: ${m.name} (${i+1}/${materials.length})`)
             await new Promise(r => setTimeout(r, 10));
         }
+
+        materials.forEach(m => {
+            console.log(`${m.name},${m.categories.join('|')}`)
+        })
     
-        var session = driver.session()
+        // var session = driver.session()
     
-        result = await session.run(`
-            UNWIND $materials AS material 
-            MERGE (m:Material {name: material.name })
-            FOREACH (category IN material.categories |
-                MERGE (c:Category {name: category})
-                MERGE (m)-[:IS]->(c)
-            )
-            `, { materials }
-        )
+        // result = await session.run(`
+        //     UNWIND $materials AS material 
+        //     MERGE (m:Material {name: material.name })
+        //     FOREACH (category IN material.categories |
+        //         MERGE (c:Category {name: category})
+        //         MERGE (m)-[:IS]->(c)
+        //     )
+        //     `, { materials }
+        // )
     
-        await session.close()
+        // await session.close()
     }
 
     async function importRecipes() {
@@ -105,30 +109,34 @@
                     .map((j, el) => el.data)
                     .toArray()
     
-            console.log(`Finished: ${r.name} (${i+1}/${recipes.length})`)
+            // console.log(`Finished: ${r.name} (${i+1}/${recipes.length})`)
             await new Promise(r => setTimeout(r, 10));
         }
 
-        var session = driver.session()
+        recipes.forEach(r => {
+            console.log(`${r.name},${r.categories.join('|')},${r.ingredients.join('|')}`)
+        })
 
-        result = await session.run(`
-            UNWIND $recipes AS recipe 
-            MERGE (r:Recipe {name: recipe.name })
+        // var session = driver.session()
+
+        // result = await session.run(`
+        //     UNWIND $recipes AS recipe 
+        //     MERGE (r:Recipe {name: recipe.name })
             
-            WITH r, recipe
-            UNWIND recipe.ingredients AS ingredient
-            MATCH (i {name: ingredient})
-            MERGE (r)-[:NEEDS]->(i)
+        //     WITH r, recipe
+        //     UNWIND recipe.ingredients AS ingredient
+        //     MATCH (i {name: ingredient})
+        //     MERGE (r)-[:NEEDS]->(i)
 
-            WITH r, recipe
-            FOREACH (category IN recipe.categories |
-                MERGE (c:Category {name: category})
-                MERGE (r)-[:IS]->(c)
-            )
-            `, { recipes }
-        )
+        //     WITH r, recipe
+        //     FOREACH (category IN recipe.categories |
+        //         MERGE (c:Category {name: category})
+        //         MERGE (r)-[:IS]->(c)
+        //     )
+        //     `, { recipes }
+        // )
     
-        await session.close()
+        // await session.close()
     }
 
     // const res = await axios('https://wikiwiki.jp/escha-logy/%E7%B4%A0%E6%9D%90')
