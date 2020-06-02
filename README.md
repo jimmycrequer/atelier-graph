@@ -3,7 +3,7 @@
 ## Import the data
 
 ```
-LOAD CSV FROM "file:///import.csv" AS row
+LOAD CSV FROM "https://raw.githubusercontent.com/jimmycrequer/atelier-graph/master/items.csv" AS row
 
 MERGE (i:Item {name: row[0]})
 
@@ -15,7 +15,7 @@ MERGE (i)-[:IS]->(cat)
 WITH i, row
 UNWIND split(row[2], "|") AS recipe
 MERGE (c {name: recipe})
-MERGE (c)-[:NEEDS]->(i)
+MERGE (i)-[:NEEDS]->(c)
 ```
 
 ### OLD
