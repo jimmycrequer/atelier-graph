@@ -1,53 +1,86 @@
 (async () => {
 
-    const SAVE_TO_DB = false
+    const SAVE_TO_DB = true
 
     const axios = require('axios')
     const cheerio = require('cheerio')
     const neo4j = require('neo4j-driver')
 
-    require('dotenv').config()
-    const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
-
-
     const BASE_URL = "https://h1g.jp/escha-logy/?%E6%BD%9C%E5%8A%9B"
 
+    const properties = {}
 
     let res = await axios(BASE_URL)
     let $ = cheerio.load(res.data)
 
-
     const data = $("body > div.menu_body > table > tbody > tr > td:nth-child(2) > div > div.ie5 > table > tbody > tr").toArray()
-    console.log(data.length)
-
     for (let i = 0; i < data.length; i++) {
         const name = $("td:nth-child(1)", data[i]).text()
         const description = $("td:nth-child(2)", data[i]).text()
-        const conditions = $("td:nth-child(9)", data[i]).text().replace("-", "").split("×")
+        let conditions = $("td:nth-child(9)", data[i]).text()
+          .replace("PP効率強化", "PP枠効率強化")
+          .replace("消費MPカット", "消費MP削減")
+          .replace("MPコスト圧縮", "消費MP圧縮")
+          .replace("精霊の力", "精霊の加護")
+          .split("×")
+        if (conditions.length == 1 && conditions[0] =="-") {
+          conditions = []
+        }
+        const attack = $("td:nth-child(3)", data[i]).text() == "○"
+        const heal = $("td:nth-child(4)", data[i]).text() == "○"
+        const support = $("td:nth-child(5)", data[i]).text() == "○"
+        const weapon = $("td:nth-child(6)", data[i]).text() == "○"
+        const armor = $("td:nth-child(7)", data[i]).text() == "○"
+        const ornament = $("td:nth-child(8)", data[i]).text() == "○"
 
+        properties[name] = {
+          name,
+          description,
+          conditions,
+          attack,
+          heal,
+          support,
+          weapon,
+          armor,
+          ornament
+        }
+      }
 
+      if (SAVE_TO_DB) {
+        require('dotenv').config()
+        const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
 
-        console.log(name, description, conditions)
+        for (let key in properties) {
+          let prop = properties[key]
+          // check validty of conditions
+          for(let c = 0; c < prop.conditions.length; c++) {
+            if (!properties[prop.conditions[c]]) {
+              console.log(`Couldn't find property:[${prop.conditions[c]}] for name:[${prop.name}]`)
+              break
+            }
+          }
 
+          const session = driver.session()
+          result = await session.run(
+            `
+              MERGE (p:Test {name: $name})
+                SET p.description = $description
+                SET p.attack = $attack
+                SET p.heal = $heal
+                SET p.weapon = $weapon
+                SET p.armor = $armor
+                SET p.ornament = $ornament
+              FOREACH (c IN $conditions |
+                MERGE (p2:Test {name: c})
+                CREATE (p2)-[:TO]->(p))
+            `, prop
+          )
+          await session.close()          
+        }
 
-        //
-        //
-        // h2 = $(data[i])
-        //
-        // const name = h2.text()
-        //
-        //
-        // let dataArea = $(h2.next().next())
-        //
-        // let description = $("tr:nth-child(2)", dataArea).text().trim()
-        //
-        // let condition = $("tr:nth-child(4)", dataArea).text().trim()
-        // if (condition.indexOf("強烈な破壊力") > -1)
-        //   condition = condition.replace("強烈な破壊力", "強力な破壊力")
-        // condition = condition.indexOf("×") > -1 ? condition.split("×") : []
-        //
-        // let materials = $("tr:nth-child(6) a", dataArea).toArray().map(a => $(a).text())
-        //
+        await driver.close()
+      }
+
         // if (SAVE_TO_DB) {
         //   const session = driver.session()
         //   result = await session.run(
@@ -66,8 +99,5 @@
         // }
         //
         // console.log(i, name)
-    }
-
-    await driver.close()
 
 })()
