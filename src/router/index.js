@@ -1,16 +1,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
 import PropertyList from '../views/PropertyList.vue'
 import CustomProperties from '../views/CustomProperties.vue'
+import Candidates from '../views/Candidates.vue'
 
 Vue.use(VueRouter)
 
   const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    redirect: '/properties'
   },
   {
     path: '/about',
@@ -29,6 +28,11 @@ Vue.use(VueRouter)
     path: '/custom',
     name: 'Custom',
     component: CustomProperties
+  },
+  {
+    path: '/candidates',
+    name: 'Candidates',
+    component: Candidates
   }
 ]
 

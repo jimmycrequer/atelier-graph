@@ -72,10 +72,10 @@
                 SET p.ornament = $ornament
               FOREACH (c IN $conditions |
                 MERGE (p2:Test {name: c})
-                CREATE (p2)-[:TO]->(p))
+                MERGE (p2)-[:TO]->(p))
             `, prop
           )
-          await session.close()          
+          await session.close()
         }
 
         await driver.close()

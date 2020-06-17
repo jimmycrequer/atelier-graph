@@ -2,29 +2,39 @@
   <div>
       <h1>Explore Properties</h1>
 
-      <div class="container" v-if="selectedPropTmp">
-        <div class="propertiesGroup" v-for="(pp, i) in selectedPropTmp.lowerP" :key="i">
-          <div v-for="(p, j) in pp" :key="j">
-            {{ p }}
-          </div>
-        </div>
-      </div>
-
-      <input type="text" v-model="q" />
-
       <table>
         <thead>
           <tr>
             <th>Name</th>
             <th>Description</th>
-            <th></th>
+            <th>Cluster Size</th>
+            <th>Attack</th>
+            <th>Heal</th>
+            <th>Ornament</th>
+            <th>Armor</th>
+            <th>Weapon</th>
+          </tr>
+          <tr>
+            <th><input type="text" v-model="q.name" /></th>
+            <th><input type="text" v-model="q.description" /></th>
+            <th><input type="text" v-model="q.clusterSize" /></th>
+            <th><input type="checkbox" v-model="q.attack" /></th>
+            <th><input type="checkbox" v-model="q.heal" /></th>
+            <th><input type="checkbox" v-model="q.ornament" /></th>
+            <th><input type="checkbox" v-model="q.armor" /></th>
+            <th><input type="checkbox" v-model="q.weapon" /></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="prop in properties" :key="prop.id">
+          <tr v-for="prop in properties" :key="prop.id" @click="toggle(prop)" :class="{ 'selected' : prop._selected }">
             <td>{{ prop.name }}</td>
             <td>{{ prop.description }}</td>
-            <td><input type="checkbox" v-model="prop._selected"></td>
+            <td>{{ prop.clusterSize }}</td>
+            <td><input type="checkbox" onclick="return false;" :checked="prop.attack" /></td>
+            <td><input type="checkbox" onclick="return false;" :checked="prop.heal" /></td>
+            <td><input type="checkbox" onclick="return false;" :checked="prop.ornament" /></td>
+            <td><input type="checkbox" onclick="return false;" :checked="prop.armor" /></td>
+            <td><input type="checkbox" onclick="return false;" :checked="prop.weapon" /></td>
           </tr>
         </tbody>
       </table>
@@ -35,41 +45,51 @@
 export default {
   data() {
     return {
-      q: ""
+      q: {
+        name: "",
+        description: "",
+        clusterSize: "",
+        attack: false,
+        heal: false,
+        ornament: false,
+        armor: false,
+        weapon: false
+      }
     }
   },
 
   computed: {
-    properties() { 
-      let props = this.$store.getters.propertiesTop
-
-      if (this.q) {
-        props = props.filter(prop => {
-          if (prop._selected)
-            return true
-
-          return prop.name.indexOf(this.q) > -1 
-            || prop.description.indexOf(this.q) > -1
-            || prop.lowerP.join(" ").indexOf(this.q) > 1
-        })
-      }
-
-      return props
+    selectedProperties() {
+      return this.$store.state.selectedProperties
     },
-    selectedPropTmp() {
-      return {
-        name: "究極の破壊力",
-        lowerP: [
-          ["破壊力", "破壊力＋", "破壊力＋＋"],
-          ["大きな破壊力", "スーパー破壊力"],
-          ["究極の破壊力"]
-        ]
-      }
+
+    properties() {
+      return this.$store.getters.propertiesTop.filter(prop => {
+        prop._selected = this.selectedProperties.indexOf(prop) > -1
+
+        if (prop._selected)
+          return true
+
+        return (!this.q.name || prop.name.indexOf(this.q.name) > -1)
+          && (!this.q.description || prop.description.indexOf(this.q.description) > -1)
+          && (!this.q.clusterSize || prop.clusterSize == +this.q.clusterSize)
+          && (!this.q.attack || prop.attack == this.q.attack)
+          && (!this.q.heal || prop.heal == this.q.heal)
+          && (!this.q.ornament || prop.ornament == this.q.ornament)
+          && (!this.q.armor || prop.armor == this.q.armor)
+          && (!this.q.weapon || prop.weapon == this.q.weapon)
+      })
     }
   },
 
   created() {
     this.$store.dispatch("loadProperties")
+  },
+
+  methods: {
+    toggle(prop) {
+      this.$store.dispatch("toggleProperty", prop)
+    }
   }
 }
 </script>
@@ -116,5 +136,9 @@ input {
 .container {
   display: flex;
   align-items: center;
+}
+
+tr.selected {
+  background-color: red;
 }
 </style>

@@ -10,11 +10,13 @@ export default new Vuex.Store({
   state: {
     properties: [],
     items: [],
-    categories: []
+    categories: [],
+    selectedProperties: [],
+    components: []
   },
   getters: {
-    propertiesTop: state =>{
-      return state.properties.filter(prop => prop.upperP.length == 0)
+    propertiesTop: state => {
+      return state.properties
     }
   },
   mutations: {
@@ -28,6 +30,21 @@ export default new Vuex.Store({
 
     addCategories(state, categories) {
       state.categories = categories
+    },
+
+    addComponents(state, components) {
+      state.components = components
+    },
+
+    toggleSelectedProperty(state, property) {
+      const idx = state.selectedProperties.indexOf(property)
+
+      if (idx > -1) {
+        state.selectedProperties.splice(idx, 1)
+      }
+      else if (state.selectedProperties.length < 3) {
+        state.selectedProperties.push(property)
+      }
     }
   },
   actions: {
@@ -76,28 +93,41 @@ export default new Vuex.Store({
 
     async loadProperties(context) {
       const query = `
-        MATCH (p:Property)
-        OPTIONAL MATCH (p)<-[:TO]-(lowerP:Property)
-        OPTIONAL MATCH (p)-[:TO]->(upperP:Property)
-        RETURN id(p) AS id, 
-               p.name AS name, 
-               p.description AS description, 
-               collect(DISTINCT lowerP.name) AS lowerP,
-               collect(DISTINCT upperP.name) AS upperP
+        MATCH (p:Test)
+        WHERE NOT EXISTS( (p)-[:TO]->(:Test) )
+        MATCH (pp:Test)-[:TO*0..]->(p)
+        WITH p, collect(DISTINCT pp.name) AS pp
+        RETURN
+          id(p) AS id,
+          p.name AS name,
+          p.description AS description,
+          p.attack AS attack,
+          p.heal AS heal,
+          p.ornament AS ornament,
+          p.armor AS armor,
+          p.weapon AS weapon,
+          size(pp) AS clusterSize,
+          pp AS clusterNodes
+        ORDER BY clusterSize DESC
       `
 
       const session = driver.session()
 
       const res = await session.run(query)
-        
+
       if (res.records) {
         const properties = res.records.map(record => {
           return {
             id: record.get("id"),
             name: record.get("name"),
             description: record.get("description"),
-            lowerP: record.get("lowerP"),
-            upperP: record.get("upperP")
+            attack: record.get("attack"),
+            heal: record.get("heal"),
+            ornament: record.get("ornament"),
+            armor: record.get("armor"),
+            weapon: record.get("weapon"),
+            clusterSize: record.get("clusterSize"),
+            clusterNodes: record.get("clusterNodes")
           }
         })
 
@@ -105,6 +135,45 @@ export default new Vuex.Store({
       }
 
       await session.close()
+    },
+
+    async findComponents({ commit, state }) {
+      const query = `
+        MATCH (p:Property)-[r:TO*0..]->(endp:Property)
+        WHERE endp.name IN $props
+        WITH DISTINCT p
+        MATCH (i:Item)-[:HAS]->(p)
+        RETURN
+          [(c:Category)-[:CONTAINS]->(i) | c.name] as categories,
+          i.name AS item,
+          collect(p.name) AS props,
+          [(i)-[:NEEDS]->(ii) | ii.name] as recipe
+        ORDER BY length(props) DESC
+      `
+      const params = { props: state.selectedProperties.map(p => p.name) }
+
+      const session = driver.session()
+
+      const res = await session.run(query, params)
+
+      if (res.records) {
+        const components = res.records.map(record => {
+          return {
+            categories: record.get("categories"),
+            item: record.get("item"),
+            props: record.get("props"),
+            recipe: record.get("recipe")
+          }
+        })
+
+        commit("addComponents", components)
+      }
+
+      await session.close()
+    },
+
+    toggleProperty({ commit }, property) {
+      commit("toggleSelectedProperty", property)
     }
   },
   modules: {
