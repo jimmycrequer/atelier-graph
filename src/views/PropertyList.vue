@@ -1,7 +1,5 @@
 <template>
   <div>
-      <h1>Explore Properties</h1>
-
       <table>
         <thead>
           <tr>
