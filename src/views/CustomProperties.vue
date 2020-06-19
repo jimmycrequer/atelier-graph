@@ -2,6 +2,12 @@
     <div>
         <h1>Manage Custom Properties</h1>
 
+        <div class="row">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">
+            Add new craft
+          </button>
+        </div>
+
         <table>
             <thead>
             <tr>
@@ -23,6 +29,38 @@
             </tr>
             </tbody>
         </table>
+
+        <div class="modal fade" id="addForm" tabindex="-1" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Add Form</h5>
+              </div>
+
+              <div class="modal-body">
+                <form>
+                  <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Item</label>
+                    <div class="col-sm-10">
+                      <autocomplete :source="craftableItems" results-property="name" results-display="name" @selected="chooseItem" />
+                    </div>
+                  </div>
+
+                  <div class="form-group row" v-for="(r, i) in tempCraft.recipe" :key="i">
+                    <label class="col-sm-2 col-form-label">{{ r }}</label>
+                    <div class="col-sm-10">
+                      <autocomplete :source="itemsForCategory(r)" results-property="name" results-display="name" />
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
 </template>
 
@@ -36,12 +74,19 @@ export default {
 
     data() {
         return {
-            custom: []
+            custom: [],
+
+            tempCraft: {
+              item: "",
+              recipe: [],
+              ingredients: []
+            }
         }
     },
 
     computed: {
         items() { return this.$store.state.items },
+        craftableItems() { return this.$store.getters.craftableItems },
         categories() { return this.$store.state.categories },
         properties() { return this.$store.state.properties }
     },
@@ -51,7 +96,7 @@ export default {
             MATCH (i:Item)-[r:HAS {custom: true}]->(p:Property)
             RETURN id(r) AS id,
                     [ (c:Category)-[:CONTAINS]->(i) | c.name ] AS categories,
-                    i.name AS item, 
+                    i.name AS item,
                     p.name AS property
             ORDER BY item
         `
@@ -59,7 +104,7 @@ export default {
         const session = this.$root.$driver.session()
 
         const res = await session.run(query)
-            
+
         if (res.records) {
             res.records.forEach(record => {
                 this.custom.push({
@@ -72,6 +117,28 @@ export default {
       }
 
       await session.close()
+    },
+
+    methods: {
+      chooseItem(item) {
+        item = item.selectedObject
+        console.log(item)
+        this.tempCraft = {
+          item: item.name,
+          recipe: item.recipe,
+          ingredients: []
+        }
+      },
+
+      itemsForCategory(category) {
+        return [category]
+        // return this.items.filter(item => {
+        //   if (item.name == category)
+        //     return true
+        //
+        //   return item.recipe.contains(category)
+        // })
+      }
     }
 }
 </script>

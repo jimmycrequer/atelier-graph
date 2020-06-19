@@ -2,12 +2,11 @@
     <div>
         <template v-if="properties">
           <div class="container" v-for="(p, k) in properties" :key="k">
-            <div>{{ p.clusterNodes.join(" - ") }}</div>
-            <!-- <div class="propertiesGroup" v-for="(pp, i) in selectedPropTmp.lowerP" :key="i">
-              <div v-for="(p, j) in pp" :key="j">
-                {{ p }}
+            <div class="propertiesGroup" v-for="(c, i) in p.clusterNodes" :key="i">
+              <div v-for="(n, j) in c" :key="j">
+                {{ n }}
               </div>
-            </div> -->
+            </div>
           </div>
         </template>
 

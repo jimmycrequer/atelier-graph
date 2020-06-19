@@ -13,10 +13,13 @@
   "main": "index.js",
   "dependencies": {
     "axios": "^0.19.2",
+    "bootstrap": "^4.5.0",
     "cheerio": "^1.0.0-rc.3",
     "core-js": "^3.6.5",
     "dotenv": "^8.2.0",
+    "jquery": "^3.5.1",
     "neo4j-driver": "^4.0.1",
+    "popper.js": "^1.16.1",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuejs-auto-complete": "^0.9.0",

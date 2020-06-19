@@ -63,7 +63,7 @@ export default {
 
     properties() {
       return this.$store.getters.propertiesTop.filter(prop => {
-        prop._selected = this.selectedProperties.indexOf(prop) > -1
+        prop._selected = this.selectedProperties.map(p => p.name).indexOf(prop.name) > -1
 
         if (prop._selected)
           return true
@@ -122,7 +122,7 @@ input {
 
 .propertiesGroup {
   display: inline-block;
-  width: 300px;
+  width: 150px;
   background-color: antiquewhite;
 }
 
@@ -134,6 +134,8 @@ input {
 .container {
   display: flex;
   align-items: center;
+  float: left;
+  padding: 20px;
 }
 
 tr.selected {

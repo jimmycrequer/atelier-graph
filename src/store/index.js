@@ -17,6 +17,10 @@ export default new Vuex.Store({
   getters: {
     propertiesTop: state => {
       return state.properties
+    },
+
+    craftableItems: state => {
+      return state.items.filter(item => item.recipe.length > 0)
     }
   },
   mutations: {
@@ -37,7 +41,7 @@ export default new Vuex.Store({
     },
 
     toggleSelectedProperty(state, property) {
-      const idx = state.selectedProperties.indexOf(property)
+      const idx = state.selectedProperties.map(p => p.name).indexOf(property.name)
 
       if (idx > -1) {
         state.selectedProperties.splice(idx, 1)
@@ -51,7 +55,9 @@ export default new Vuex.Store({
     async loadItems(context) {
       const query = `
         MATCH (i:Item)
-        RETURN id(i) AS id, i.name AS name
+        OPTIONAL MATCH (i)<-[:HAS]-(c)
+        OPTIONAL MATCH (i)-[:NEEDS]->(n)
+        RETURN id(i) AS id, i.name AS name, collect(c.name) AS categories, collect(n.name) AS recipe
         ORDER BY name ASC
       `
 
@@ -61,7 +67,9 @@ export default new Vuex.Store({
       const items = res.records.map(r => {
         return {
           id: r.get("id"),
-          name: r.get("name")
+          name: r.get("name"),
+          categories: r.get("categories"),
+          recipe: r.get("recipe")
         }
       })
 
@@ -95,19 +103,20 @@ export default new Vuex.Store({
       const query = `
         MATCH (p:Test)
         WHERE NOT EXISTS( (p)-[:TO]->(:Test) )
-        MATCH (pp:Test)-[:TO*0..]->(p)
-        WITH p, collect(DISTINCT pp.name) AS pp
+        MATCH path = (pp:Test)-[:TO*0..]->(p)
+        WITH p, length(path) AS degree, collect(DISTINCT [nn in nodes(path) | nn.name][0]) AS nodesPerDegree
+        ORDER BY degree DESC
         RETURN
-          id(p) AS id,
-          p.name AS name,
-          p.description AS description,
-          p.attack AS attack,
-          p.heal AS heal,
-          p.ornament AS ornament,
-          p.armor AS armor,
-          p.weapon AS weapon,
-          size(pp) AS clusterSize,
-          pp AS clusterNodes
+        id(p) AS id,
+        p.name AS name,
+        p.description AS description,
+        p.attack AS attack,
+        p.heal AS heal,
+        p.ornament AS ornament,
+        p.armor AS armor,
+        p.weapon AS weapon,
+        sum(size(nodesPerDegree)) AS clusterSize,
+        collect(nodesPerDegree) AS clusterNodes
         ORDER BY clusterSize DESC
       `
 
