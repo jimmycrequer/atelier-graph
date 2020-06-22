@@ -55,9 +55,11 @@ export default new Vuex.Store({
     async loadItems(context) {
       const query = `
         MATCH (i:Item)
-        OPTIONAL MATCH (i)<-[:HAS]-(c)
-        OPTIONAL MATCH (i)-[:NEEDS]->(n)
-        RETURN id(i) AS id, i.name AS name, collect(c.name) AS categories, collect(n.name) AS recipe
+        RETURN
+        id(i) AS id,
+          i.name AS name,
+          [(i)<-[:CONTAINS]-(c) | c.name] AS categories,
+          [(i)-[:NEEDS]->(n) | n.name] AS recipe
         ORDER BY name ASC
       `
 
@@ -183,6 +185,24 @@ export default new Vuex.Store({
 
     toggleProperty({ commit }, property) {
       commit("toggleSelectedProperty", property)
+    },
+
+    async saveCraft({ commit }, params) {
+      const query = `
+        CREATE (c:Custom {ingredients: $ingredients, properties: $properties})
+        WITH c
+        MATCH (i:Item {name: $item}), (p:Property)
+        WHERE p.name IN $properties
+        MERGE (c-[:HAS {custom: true}]->(p)
+        MERGE (i)-[:CUSTOM]->(c)
+      `
+
+      const session = driver.session()
+
+      const res = await session.run(query, params)
+      console.log(res)
+
+      commit("addCustomCraft", params)
     }
   },
   modules: {

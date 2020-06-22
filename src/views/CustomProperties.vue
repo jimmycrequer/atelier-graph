@@ -31,7 +31,7 @@
         </table>
 
         <div class="modal fade" id="addForm" tabindex="-1" role="dialog">
-          <div class="modal-dialog">
+          <div class="modal-dialog modal-lg">
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title">Add Form</h5>
@@ -49,14 +49,33 @@
                   <div class="form-group row" v-for="(r, i) in tempCraft.recipe" :key="i">
                     <label class="col-sm-2 col-form-label">{{ r }}</label>
                     <div class="col-sm-10">
-                      <autocomplete :source="itemsForCategory(r)" results-property="name" results-display="name" />
+                      <autocomplete ref="items" :source="itemsForCategory(r)" results-property="name" results-display="name" />
+                    </div>
+                  </div>
+
+                  <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Property 1</label>
+                    <div class="col-sm-10">
+                      <autocomplete ref="props1" :source="properties" results-property="name" results-display="name" />
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Property 2</label>
+                    <div class="col-sm-10">
+                      <autocomplete ref="props2" :source="properties" results-property="name" results-display="name" />
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Property 3</label>
+                    <div class="col-sm-10">
+                      <autocomplete ref="props3" :source="properties" results-property="name" results-display="name" />
                     </div>
                   </div>
                 </form>
               </div>
 
               <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-primary" @click="saveCraft">Save</button>
               </div>
             </div>
           </div>
@@ -79,7 +98,8 @@ export default {
             tempCraft: {
               item: "",
               recipe: [],
-              ingredients: []
+              ingredients: [],
+              properties: ["", "", ""]
             }
         }
     },
@@ -131,13 +151,23 @@ export default {
       },
 
       itemsForCategory(category) {
-        return [category]
-        // return this.items.filter(item => {
-        //   if (item.name == category)
-        //     return true
-        //
-        //   return item.recipe.contains(category)
-        // })
+        return this.items.filter(item => {
+          if (item.name == category)
+            return true
+
+          return item.categories.includes(category)
+        })
+      },
+
+      saveCraft() {
+        this.tempCraft.ingredients = this.$refs.items.map(n => n.selectedDisplay)
+        this.tempCraft.properties = [
+          this.$refs.props1.selectedDisplay,
+          this.$refs.props2.selectedDisplay,
+          this.$refs.props3.selectedDisplay
+        ]
+
+        this.$store.dispatch("saveCraft", this.tempCraft)
       }
     }
 }
