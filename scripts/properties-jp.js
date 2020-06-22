@@ -41,6 +41,7 @@
             return
 
           let tmp = this.data
+          tmp = tmp.replace("クリティカル＋×クリティカル＋", "クリティカル＋×クリティカル＋＋")
           tmp = tmp.replace("強烈な破壊力", "強力な破壊力")
           tmp = tmp.replace("精霊の力", "精霊の加護")
           tmp = tmp.indexOf("×") > -1 ? tmp.split("×") : []
@@ -141,15 +142,15 @@
             const session = driver.session()
             result = await session.run(
               `
-                MERGE (p:Property_V2 {name: $name})
+                MERGE (p:Property {name: $name})
                   SET p.description = $description
                   SET p.restrictions = $restrictions
                   SET p.pp = $pp
                 FOREACH (c IN $conditions |
-                  MERGE (p2:Property_V2 {name: c})
+                  MERGE (p2:Property {name: c})
                   CREATE (p2)-[:TO]->(p))
                 FOREACH (itemName IN $items |
-                  MERGE (i:Item_V2 {name: itemName})
+                  MERGE (i:Item {name: itemName})
                   CREATE (i)-[:HAS]->(p))
               `, prop
             )

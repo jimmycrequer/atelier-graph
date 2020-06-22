@@ -1,11 +1,10 @@
 (async () => {
 
+    const SAVE_TO_DB = true
+
     const axios = require('axios')
     const cheerio = require('cheerio')
     const neo4j = require('neo4j-driver')
-
-    require('dotenv').config()
-    const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
 
     const itemIdx = {}
 
@@ -32,7 +31,7 @@
 
 
     data = $("h2").toArray()
-  
+
 
     for (let i = 0; i < data.length; i++) {
         h2 = $(data[i])
@@ -99,7 +98,7 @@
         $("tr:nth-child(3) > td:nth-child(7)", dataArea).text().trim()
       ]
       let categories = $("tr:nth-child(3) > td:last-child", dataArea).text().trim().split("、")
-      
+
       let ingredients = $("tr:nth-child(7) a", dataArea).toArray().filter(a => {
         return $(a).attr("href").indexOf("item-book.html") == -1
       }).map(a => $(a).text())
@@ -114,7 +113,7 @@
       }
 
       // return
-    }    
+    }
 
     // ================================================
     // ATTACK & HEAL ITEMS
@@ -156,6 +155,84 @@
     }
 
     // ================================================
+    // WEAPON ITEMS
+    // ================================================
+
+    res = await axios("https://omoteura.com/atelier_eschalogy/item-weapon.html")
+    $ = cheerio.load(res.data)
+
+    data = $("h3").toArray()
+    for (let i = 0; i < data.length; i++) {
+      h3 = $(data[i])
+
+      const id = h3.attr("id")
+      const name = h3.text()
+
+      let dataArea = $(h3.next().next())
+
+      let level = $("tr:nth-child(3) > td:nth-child(1)", dataArea).text().trim()
+      let attributes = [
+        $("tr:nth-child(3) > td:nth-child(1)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(2)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(3)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(4)", dataArea).text().trim()
+      ]
+      let categories = $("tr:nth-child(3) > td:last-child", dataArea).text().trim().split("、")
+
+      let ingredients = $("tr:nth-child(8) a", dataArea).toArray().filter(a => {
+        return $(a).attr("href").indexOf("item-book.html") == -1
+      }).map(a => $(a).text())
+
+      itemIdx[name] = {
+        group: "WEAPON",
+        name,
+        level,
+        attributes,
+        categories,
+        ingredients
+      }
+    }
+
+    // ================================================
+    // ARMOR ITEMS
+    // ================================================
+
+    res = await axios("https://omoteura.com/atelier_eschalogy/item-armor.html")
+    $ = cheerio.load(res.data)
+
+    data = $("h3").toArray()
+    for (let i = 0; i < data.length; i++) {
+      h3 = $(data[i])
+
+      const id = h3.attr("id")
+      const name = h3.text()
+
+      let dataArea = $(h3.next().next())
+
+      let level = $("tr:nth-child(3) > td:nth-child(1)", dataArea).text().trim()
+      let attributes = [
+        $("tr:nth-child(3) > td:nth-child(1)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(2)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(3)", dataArea).text().trim(),
+        $("tr:nth-child(3) > td:nth-child(4)", dataArea).text().trim()
+      ]
+      let categories = $("tr:nth-child(3) > td:last-child", dataArea).text().trim().split("、")
+
+      let ingredients = $("tr:nth-child(8) a", dataArea).toArray().filter(a => {
+        return $(a).attr("href").indexOf("item-book.html") == -1
+      }).map(a => $(a).text())
+
+      itemIdx[name] = {
+        group: "ARMOR",
+        name,
+        level,
+        attributes,
+        categories,
+        ingredients
+      }
+    }
+
+    // ================================================
     // VALIDATION
     // ================================================
 
@@ -174,12 +251,18 @@
     // SAVE TO DB
     // ================================================
 
+    if (!SAVE_TO_DB)
+      return
+
+    require('dotenv').config()
+    const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
+
     for (let i = 0; i < Object.values(itemIdx).length; i++) {
       let obj = Object.values(itemIdx)[i]
 
       if (obj.group == "CATEGORY")
         continue
-      
+
       const session = driver.session()
         result = await session.run(
           `
@@ -190,11 +273,11 @@
               MERGE (c)-[:CONTAINS]->(n))
             FOREACH (ingredient IN $ingredients |
               MERGE (i {name: ingredient})
-              MERGE (n)-[:NEEDS]->(i))
+              CREATE (n)-[:NEEDS]->(i))
           `, obj
         )
         await session.close()
-    
+
     }
 
     await driver.close()
