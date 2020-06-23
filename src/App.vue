@@ -15,6 +15,7 @@ export default {
     this.$store.dispatch("loadItems")
     this.$store.dispatch("loadCategories")
     this.$store.dispatch("loadProperties")
+    this.$store.dispatch("loadCustomCrafts")
   }
 }
 </script>

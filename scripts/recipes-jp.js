@@ -260,24 +260,32 @@
     for (let i = 0; i < Object.values(itemIdx).length; i++) {
       let obj = Object.values(itemIdx)[i]
 
-      if (obj.group == "CATEGORY")
-        continue
-
-      const session = driver.session()
-        result = await session.run(
-          `
-            MERGE (n:Item {name: $name})
-            SET n.level = $level, n.attributes = $attributes, n.group = $group
-            FOREACH (category IN $categories |
-              MERGE (c:Category {name: category})
-              MERGE (c)-[:CONTAINS]->(n))
-            FOREACH (ingredient IN $ingredients |
-              MERGE (i {name: ingredient})
-              CREATE (n)-[:NEEDS]->(i))
-          `, obj
-        )
-        await session.close()
-
+      if (obj.group == "CATEGORY") {
+        const session = driver.session()
+          result = await session.run(
+            `
+              MERGE (n {name: $name})
+              SET n:Category
+            `, obj
+          )
+          await session.close()
+      }
+      else {
+        const session = driver.session()
+          result = await session.run(
+            `
+              MERGE (n {name: $name})
+              SET n:Item, n.level = $level, n.attributes = $attributes, n.group = $group
+              FOREACH (category IN $categories |
+                MERGE (c:Category {name: category})
+                MERGE (c)-[:CONTAINS]->(n))
+              FOREACH (ingredient IN $ingredients |
+                MERGE (i {name: ingredient})
+                CREATE (n)-[:NEEDS]->(i))
+            `, obj
+          )
+          await session.close()
+      }
     }
 
     await driver.close()

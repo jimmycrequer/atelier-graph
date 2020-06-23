@@ -12,7 +12,8 @@ export default new Vuex.Store({
     items: [],
     categories: [],
     selectedProperties: [],
-    components: []
+    components: [],
+    customCrafts: []
   },
   getters: {
     propertiesTop: state => {
@@ -49,6 +50,14 @@ export default new Vuex.Store({
       else if (state.selectedProperties.length < 3) {
         state.selectedProperties.push(property)
       }
+    },
+
+    addCustomCraft(state, crafts) {
+      state.customCrafts = crafts
+    },
+
+    deleteAllCustom(state) {
+      state.customCrafts = []
     }
   },
   actions: {
@@ -103,22 +112,18 @@ export default new Vuex.Store({
 
     async loadProperties(context) {
       const query = `
-        MATCH (p:Test)
-        WHERE NOT EXISTS( (p)-[:TO]->(:Test) )
-        MATCH path = (pp:Test)-[:TO*0..]->(p)
+        MATCH (p:Property)
+        WHERE NOT EXISTS( (p)-[:TO]->(:Property) )
+        MATCH path = (pp:Property)-[:TO*0..]->(p)
         WITH p, length(path) AS degree, collect(DISTINCT [nn in nodes(path) | nn.name][0]) AS nodesPerDegree
         ORDER BY degree DESC
         RETURN
-        id(p) AS id,
-        p.name AS name,
-        p.description AS description,
-        p.attack AS attack,
-        p.heal AS heal,
-        p.ornament AS ornament,
-        p.armor AS armor,
-        p.weapon AS weapon,
-        sum(size(nodesPerDegree)) AS clusterSize,
-        collect(nodesPerDegree) AS clusterNodes
+          id(p) AS id,
+          p.name AS name,
+          p.description AS description,
+          p.restrictions AS restrictions,
+          sum(size(nodesPerDegree)) AS clusterSize,
+          collect(nodesPerDegree) AS clusterNodes
         ORDER BY clusterSize DESC
       `
 
@@ -132,11 +137,11 @@ export default new Vuex.Store({
             id: record.get("id"),
             name: record.get("name"),
             description: record.get("description"),
-            attack: record.get("attack"),
-            heal: record.get("heal"),
-            ornament: record.get("ornament"),
-            armor: record.get("armor"),
-            weapon: record.get("weapon"),
+            attack: record.get("restrictions")[0],
+            heal: record.get("restrictions")[1],
+            ornament: record.get("restrictions")[4],
+            armor: record.get("restrictions")[3],
+            weapon: record.get("restrictions")[2],
             clusterSize: record.get("clusterSize"),
             clusterNodes: record.get("clusterNodes")
           }
@@ -146,6 +151,37 @@ export default new Vuex.Store({
       }
 
       await session.close()
+    },
+
+    async loadCustomCrafts(context) {
+      const query = `
+          MATCH (i:Item)-[:CUSTOM]->(c:Custom)-[:HAS]->(p:Property)
+          RETURN
+            id(c) AS id,
+            [ (cat:Category)-[:CONTAINS]->(i) | cat.name ] AS categories,
+            i.name AS item,
+            c.ingredients AS ingredients,
+            collect(p.name) AS properties
+          ORDER BY item
+      `
+
+      const session = driver.session()
+
+      const res = await session.run(query)
+
+      if (res.records) {
+          context.commit("addCustomCraft", res.records.map(record => {
+            return {
+                  id: record.get("id"),
+                  categories: record.get("categories"),
+                  item: record.get("item"),
+                  ingredients: record.get("ingredients"),
+                  properties: record.get("properties")
+              }
+          }))
+        }
+
+        await session.close()
     },
 
     async findComponents({ commit, state }) {
@@ -187,13 +223,13 @@ export default new Vuex.Store({
       commit("toggleSelectedProperty", property)
     },
 
-    async saveCraft({ commit }, params) {
+    async saveCraft({ dispatch }, params) {
       const query = `
-        CREATE (c:Custom {ingredients: $ingredients, properties: $properties})
+        CREATE (c:Custom {name: $item, ingredients: $ingredients, properties: $properties})
         WITH c
         MATCH (i:Item {name: $item}), (p:Property)
         WHERE p.name IN $properties
-        MERGE (c-[:HAS {custom: true}]->(p)
+        MERGE (c)-[:HAS]->(p)
         MERGE (i)-[:CUSTOM]->(c)
       `
 
@@ -202,7 +238,21 @@ export default new Vuex.Store({
       const res = await session.run(query, params)
       console.log(res)
 
-      commit("addCustomCraft", params)
+      dispatch("loadCustomCrafts")
+    },
+
+    async deleteAllCustom({ dispatch }) {
+      const query = `
+        MATCH (c:Custom)
+        DETACH DELETE c
+      `
+
+      const session = driver.session()
+
+      const res = await session.run(query)
+      console.log(res)
+
+      dispatch("loadCustomCrafts")
     }
   },
   modules: {

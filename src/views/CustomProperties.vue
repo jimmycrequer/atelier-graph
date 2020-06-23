@@ -6,6 +6,9 @@
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">
             Add new craft
           </button>
+          <button type="button" class="btn btn-danger" @click="deleteAllCustom">
+            Clear all crafts
+          </button>
         </div>
 
         <table>
@@ -13,10 +16,12 @@
             <tr>
                 <th>Item Categories</th>
                 <th>Item Name</th>
+                <th>Ingredients</th>
                 <th>Property</th>
             </tr>
             <tr>
                 <th><autocomplete :source="categories" results-property="name" results-display="name" /></th>
+                <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
                 <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
                 <th><autocomplete :source="properties" results-property="name" results-display="name" /></th>
             </tr>
@@ -25,7 +30,8 @@
             <tr v-for="c in custom" :key="+c.id">
                 <td>{{ c.categories.join(" ") }}</td>
                 <td>{{ c.item }}</td>
-                <td>{{ c.property }}</td>
+                <td>{{ c.ingredients.join(" | ") }}</td>
+                <td>{{ c.properties.join(" | ") }}</td>
             </tr>
             </tbody>
         </table>
@@ -93,8 +99,6 @@ export default {
 
     data() {
         return {
-            custom: [],
-
             tempCraft: {
               item: "",
               recipe: [],
@@ -105,38 +109,11 @@ export default {
     },
 
     computed: {
+        custom() { return this.$store.state.customCrafts },
         items() { return this.$store.state.items },
         craftableItems() { return this.$store.getters.craftableItems },
         categories() { return this.$store.state.categories },
         properties() { return this.$store.state.properties }
-    },
-
-    async created() {
-        const query = `
-            MATCH (i:Item)-[r:HAS {custom: true}]->(p:Property)
-            RETURN id(r) AS id,
-                    [ (c:Category)-[:CONTAINS]->(i) | c.name ] AS categories,
-                    i.name AS item,
-                    p.name AS property
-            ORDER BY item
-        `
-
-        const session = this.$root.$driver.session()
-
-        const res = await session.run(query)
-
-        if (res.records) {
-            res.records.forEach(record => {
-                this.custom.push({
-                    id: record.get("id"),
-                    categories: record.get("categories"),
-                    item: record.get("item"),
-                    property: record.get("property")
-                })
-            })
-      }
-
-      await session.close()
     },
 
     methods: {
@@ -168,6 +145,10 @@ export default {
         ]
 
         this.$store.dispatch("saveCraft", this.tempCraft)
+      },
+
+      deleteAllCustom() {
+        this.$store.dispatch("deleteAllCustom")
       }
     }
 }
