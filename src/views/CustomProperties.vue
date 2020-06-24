@@ -2,7 +2,7 @@
     <div>
         <h1>Manage Custom Properties</h1>
 
-        <div class="row">
+        <div id="btn-bar" class="row">
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">
             Add new craft
           </button>
@@ -11,30 +11,32 @@
           </button>
         </div>
 
-        <table>
-            <thead>
-            <tr>
-                <th>Item Categories</th>
-                <th>Item Name</th>
-                <th>Ingredients</th>
-                <th>Property</th>
-            </tr>
-            <tr>
-                <th><autocomplete :source="categories" results-property="name" results-display="name" /></th>
-                <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
-                <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
-                <th><autocomplete :source="properties" results-property="name" results-display="name" /></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="c in custom" :key="+c.id">
-                <td>{{ c.categories.join(" ") }}</td>
-                <td>{{ c.item }}</td>
-                <td>{{ c.ingredients.join(" | ") }}</td>
-                <td>{{ c.properties.join(" | ") }}</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="row">
+          <table>
+              <thead>
+              <tr>
+                  <th>Item Categories</th>
+                  <th>Item Name</th>
+                  <th>Ingredients</th>
+                  <th>Property</th>
+              </tr>
+              <tr>
+                  <th><autocomplete :source="categories" results-property="name" results-display="name" /></th>
+                  <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
+                  <th><autocomplete :source="items" results-property="name" results-display="name" /></th>
+                  <th><autocomplete :source="properties" results-property="name" results-display="name" /></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="c in custom" :key="+c.id">
+                  <td>{{ c.categories.join(" ") }}</td>
+                  <td>{{ c.item }}</td>
+                  <td>{{ c.ingredients.join(" | ") }}</td>
+                  <td>{{ c.properties.join(" | ") }}</td>
+              </tr>
+              </tbody>
+          </table>
+        </div>
 
         <div class="modal fade" id="addForm" tabindex="-1" role="dialog">
           <div class="modal-dialog modal-lg">
@@ -113,7 +115,7 @@ export default {
         items() { return this.$store.state.items },
         craftableItems() { return this.$store.getters.craftableItems },
         categories() { return this.$store.state.categories },
-        properties() { return this.$store.state.properties }
+        properties() { return this.$store.state.allProperties }
     },
 
     methods: {
@@ -155,5 +157,16 @@ export default {
 </script>
 
 <style>
+#btn-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
 
+#btn-bar > button {
+  margin-left: 5px;
+  margin-right: 5px;
+}
 </style>

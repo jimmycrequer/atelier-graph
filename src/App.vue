@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="container-fluid">
     <div id="nav">
       <router-link to="/properties">Properties</router-link> |
       <router-link to="/custom">Custom</router-link> |
@@ -14,6 +14,7 @@ export default {
   created() {
     this.$store.dispatch("loadItems")
     this.$store.dispatch("loadCategories")
+    this.$store.dispatch("loadAllProperties")
     this.$store.dispatch("loadProperties")
     this.$store.dispatch("loadCustomCrafts")
   }

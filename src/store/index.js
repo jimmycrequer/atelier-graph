@@ -8,6 +8,7 @@ const driver = neo4j.driver(`bolt://${process.env.VUE_APP_NEO4J_HOST}`, neo4j.au
 
 export default new Vuex.Store({
   state: {
+    allProperties: [],
     properties: [],
     items: [],
     categories: [],
@@ -27,6 +28,10 @@ export default new Vuex.Store({
   mutations: {
     addProperties(state, properties) {
       state.properties = properties
+    },
+
+    addAllProperties(state, properties) {
+      state.allProperties = properties
     },
 
     addItems(state, items) {
@@ -108,6 +113,41 @@ export default new Vuex.Store({
       await session.close()
 
       context.commit("addCategories", items)
+    },
+
+    async loadAllProperties(context) {
+      const query = `
+        MATCH (p:Property)
+        RETURN
+          id(p) AS id,
+          p.name AS name,
+          p.description AS description,
+          p.restrictions AS restrictions
+        ORDER BY id ASC
+      `
+
+      const session = driver.session()
+
+      const res = await session.run(query)
+
+      if (res.records) {
+        const properties = res.records.map(record => {
+          return {
+            id: record.get("id"),
+            name: record.get("name"),
+            description: record.get("description"),
+            attack: record.get("restrictions")[0],
+            heal: record.get("restrictions")[1],
+            ornament: record.get("restrictions")[4],
+            armor: record.get("restrictions")[3],
+            weapon: record.get("restrictions")[2]
+          }
+        })
+
+        context.commit("addAllProperties", properties)
+      }
+
+      await session.close()
     },
 
     async loadProperties(context) {
