@@ -50,7 +50,7 @@
                   <div class="form-group row">
                     <label class="col-sm-2 col-form-label">Item</label>
                     <div class="col-sm-10">
-                      <autocomplete :source="craftableItems" results-property="name" results-display="name" @selected="chooseItem" />
+                      <autocomplete ref="item" :source="craftableItems" results-property="name" results-display="name" @selected="chooseItem" />
                     </div>
                   </div>
 
@@ -146,7 +146,13 @@ export default {
           this.$refs.props3.selectedDisplay
         ]
 
-        this.$store.dispatch("saveCraft", this.tempCraft)
+        this.$store.dispatch("saveCraft", this.tempCraft).then(() => {
+          this.$refs.item.clear()
+          this.$refs.items.forEach(i => i.clear())
+          this.$refs.props1.clear()
+          this.$refs.props2.clear()
+          this.$refs.props3.clear()
+        })
       },
 
       deleteAllCustom() {
