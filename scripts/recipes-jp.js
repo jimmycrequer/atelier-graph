@@ -49,17 +49,6 @@
           $("tr:nth-child(3) > td:nth-child(6)", dataArea).text().trim()
         ]
 
-        // const session = driver.session()
-        // result = await session.run(
-        //   `
-        //     MERGE (i:Item {name: $name})
-        //     FOREACH (category IN $categories |
-        //       MERGE (c:Item:Category {name: category})
-        //       MERGE (c)-[:CONTAINS]->(i))
-        //   `, { name, categories }
-        // )
-        // await session.close()
-
         itemIdx[name] = {
           group: "RESOURCE",
           name,
@@ -68,12 +57,7 @@
           attributes,
           ingredients: []
         }
-
-        // console.log(name, level, categories, attributes)
     }
-
-    // await driver.close()
-    // return
 
     // ================================================
     // MIX ITEMS
@@ -112,7 +96,6 @@
         ingredients
       }
 
-      // return
     }
 
     // ================================================
@@ -255,7 +238,7 @@
       return
 
     require('dotenv').config()
-    const driver = neo4j.driver(`bolt://${process.env.NEO4J_HOST}`, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD))
+    const driver = neo4j.driver(`bolt://${process.env.VUE_APP_NEO4J_HOST}`, neo4j.auth.basic(process.env.VUE_APP_NEO4J_USER, process.env.VUE_APP_NEO4J_PWD))
 
     for (let i = 0; i < Object.values(itemIdx).length; i++) {
       let obj = Object.values(itemIdx)[i]

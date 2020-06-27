@@ -1,7 +1,5 @@
 <template>
     <div>
-        <h1>Manage Custom Properties</h1>
-
         <div id="btn-bar" class="row">
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addForm">
             Add new craft
@@ -121,7 +119,7 @@ export default {
     methods: {
       chooseItem(item) {
         item = item.selectedObject
-        console.log(item)
+
         this.tempCraft = {
           item: item.name,
           recipe: item.recipe,
@@ -140,11 +138,17 @@ export default {
 
       saveCraft() {
         this.tempCraft.ingredients = this.$refs.items.map(n => n.selectedDisplay)
-        this.tempCraft.properties = [
-          this.$refs.props1.selectedDisplay,
-          this.$refs.props2.selectedDisplay,
-          this.$refs.props3.selectedDisplay
-        ]
+        if (!this.tempCraft.ingredients[0]) {
+          this.tempCraft.ingredients = []
+        }
+
+        this.tempCraft.properties = []
+        if (this.$refs.props1.selectedDisplay)
+          this.tempCraft.properties.push(this.$refs.props1.selectedDisplay)
+        if (this.$refs.props2.selectedDisplay)
+          this.tempCraft.properties.push(this.$refs.props2.selectedDisplay)
+        if (this.$refs.props3.selectedDisplay)
+          this.tempCraft.properties.push(this.$refs.props3.selectedDisplay)
 
         this.$store.dispatch("saveCraft", this.tempCraft).then(() => {
           this.$refs.item.clear()

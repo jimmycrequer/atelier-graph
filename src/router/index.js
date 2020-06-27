@@ -1,38 +1,24 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import PropertyList from '../views/PropertyList.vue'
-import CustomProperties from '../views/CustomProperties.vue'
-import Candidates from '../views/Candidates.vue'
+import CraftsLibrary from '../views/CraftsLibrary.vue'
+import PropertiesExplorer from '../views/PropertiesExplorer.vue'
 
 Vue.use(VueRouter)
 
-  const routes = [
+const routes = [
   {
     path: '/',
-    redirect: '/properties'
+    redirect: '/explorer'
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/explorer',
+    name: 'PropertiesExplorer',
+    component: PropertiesExplorer
   },
   {
-    path: '/properties',
-    name: 'Properties',
-    component: PropertyList
-  },
-  {
-    path: '/custom',
-    name: 'Custom',
-    component: CustomProperties
-  },
-  {
-    path: '/candidates',
-    name: 'Candidates',
-    component: Candidates
+    path: '/library',
+    name: 'CraftsLibrary',
+    component: CraftsLibrary
   }
 ]
 

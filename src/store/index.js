@@ -231,10 +231,20 @@ export default new Vuex.Store({
         WITH DISTINCT p
         MATCH (i:Item)-[:HAS]->(p)
         RETURN
-          [(c:Category)-[:CONTAINS]->(i) | c.name] as categories,
-          i.name AS item,
-          collect(p.name) AS props,
-          [(i)-[:NEEDS]->(ii) | ii.name] as recipe
+        [(c:Category)-[:CONTAINS]->(i) | c.name] as categories,
+        i.name AS item,
+        collect(p.name) AS props,
+        [(i)-[:NEEDS]->(ii) | ii.name] as recipe
+        UNION
+        MATCH (p:Property)-[r:TO*0..]->(endp:Property)
+        WHERE endp.name IN $props
+        WITH DISTINCT p
+        MATCH (i:Item)-[:CUSTOM]->()-[:HAS]->(p)
+        RETURN
+        [(c:Category)-[:CONTAINS]->(i) | c.name] as categories,
+        i.name AS item,
+        collect(p.name) AS props,
+        [(i)-[:NEEDS]->(ii) | ii.name] as recipe
         ORDER BY length(props) DESC
       `
       const params = { props: state.selectedProperties.map(p => p.name) }
@@ -259,8 +269,10 @@ export default new Vuex.Store({
       await session.close()
     },
 
-    toggleProperty({ commit }, property) {
+    toggleProperty({ commit, dispatch }, property) {
       commit("toggleSelectedProperty", property)
+
+      dispatch("findComponents")
     },
 
     async saveCraft({ dispatch }, params) {

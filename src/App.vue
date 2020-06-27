@@ -1,9 +1,8 @@
 <template>
   <div id="app" class="container-fluid">
     <div id="nav">
-      <router-link to="/properties">Properties</router-link> |
-      <router-link to="/custom">Custom</router-link> |
-      <router-link to="/candidates">Candidates</router-link>
+      <router-link to="/explorer">Properties Explorer</router-link> |
+      <router-link to="/library">Crafts Library</router-link>
     </div>
     <router-view/>
   </div>

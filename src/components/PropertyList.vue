@@ -131,7 +131,7 @@ input {
   margin: 10px;
 }
 
-.container {
+.propertyContainer {
   display: flex;
   align-items: center;
   float: left;
