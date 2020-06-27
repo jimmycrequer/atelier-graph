@@ -31,13 +31,13 @@ The goal is to combine appropriate resources/items with specific properties in o
 
 Choose properties and candidates materials will be shown.
 
-!(https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-1?raw=true)
+![explorer-1](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-1?raw=true)
 
 
 Materials list include the item's categories and recipe (if any), so the user can find combinations.
 This process is hard to automate because it also depends on your items inventory.
 
-!(https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-2?raw=true)
+![explorer-2](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-2?raw=true)
 
 [TODO] You can choose properties...
 
