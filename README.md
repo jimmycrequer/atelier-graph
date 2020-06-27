@@ -2,7 +2,7 @@
 
 Tool to help alchemy optimization for the game Atelier Escha & Logy, built with Vue.js and Neo4j.
 
-> Currently, only Japanese data is available!
+> Currently, only Japanese data is available, sorry!
 
 ## Background
 
@@ -33,21 +33,29 @@ Choose properties and candidates materials will be shown.
 
 ![explorer-1](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-1.png)
 
-
-
 Materials list include the item's categories and recipe (if any), so the user can find combinations.
 This process is hard to automate because it also depends on your items inventory.
 
 ![explorer-2](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-2.png)
 
-[TODO] You can choose properties...
+You can choose properties through the designated modal window. Properties filtering on name, description is available, as well as compability (items supporting this property).
 
+![explorer-3](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-3.png)
+
+Cluster means the number of related properties. Cluster size can imply the following
+- 3 and 6 are standard, it often means 2-1 and 3-2-1 combination, by using the correct ingredients it is possible to combine them all in one step
+- 13 means a lot of properties needs to be used, requiring multiple steps, but the effect is more powerful than the previous one
+- 1 mean that this property is not a combined one and might need to be found on rare resources or items
 
 ### Crafts Library
+
+
 
 ## Limitations
 
 At this stage of the development, this app only provide candidates for crafting, so you still needs to crap your head to find the appropriate ones.
+
+Also, only Japanese data is available now, I will try to add English in near future.
 
 ## Setup
 
@@ -60,8 +68,6 @@ VUE_APP_NEO4J_PWD=letmein
 ```
 
 Run the scripts to import the data
-
-> Currently, only Japanese data is available!
 
 ```
 node scripts/recipes-jp.js
@@ -83,8 +89,4 @@ Run the App
 npm run serve
 ```
 
-For more options, please refer to the vue-cli documentation.
-
-## Miscellaneous
-
--- cypher queries --
+For more options, please refer to the [vue-cli documentation](https://cli.vuejs.org/).
