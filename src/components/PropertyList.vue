@@ -123,7 +123,6 @@ input {
 .propertiesGroup {
   display: inline-block;
   width: 150px;
-  background-color: antiquewhite;
 }
 
 .propertiesGroup div {
@@ -136,6 +135,8 @@ input {
   align-items: center;
   float: left;
   padding: 20px;
+  background-color: antiquewhite;
+  margin-right: 5px;
 }
 
 tr.selected {
