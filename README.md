@@ -38,7 +38,7 @@ Choose properties and candidates materials will be shown.
 Materials list include the item's categories and recipe (if any), so the user can find combinations.
 This process is hard to automate because it also depends on your items inventory.
 
-![explorer-2](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-2?raw=true)
+![explorer-2](https://github.com/jimmycrequer/atelier-graph/blob/master/public/explorer-2.png)
 
 [TODO] You can choose properties...
 
