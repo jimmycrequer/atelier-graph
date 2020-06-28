@@ -2,7 +2,7 @@
 
 Tool to help alchemy optimization for the game Atelier Escha & Logy, built with Vue.js and Neo4j.
 
-> Currently, only Japanese data is available, sorry!
+**Currently, only Japanese data is available, sorry!**
 
 ## Background
 
@@ -49,7 +49,16 @@ Cluster means the number of related properties. Cluster size can imply the follo
 
 ### Crafts Library
 
+The dataset contains information about resources/items and the properties they have by nature, but once you start crafting your own items and using property inheritance, you are changing the dataset. Indeed, those items can be used for another craft, and property inheritance will also work, which means that a static dataset will not be useful for a long time. In the Crafts Library, you can manage custom properties relations, and make the dataset evolve.
 
+![library-1](https://github.com/jimmycrequer/atelier-graph/blob/master/public/library-1.png)
+
+Properties shown may not linked to that item initially, but those new relationships will be taking into account when searching materials in the Properties Explorer, enabling further optimization.
+When you use an item to make another, you will lose it so showing ingredients is a valuable information in case you want to make that item again.
+
+You can add a new craft through the designated modal.
+
+![library-2](https://github.com/jimmycrequer/atelier-graph/blob/master/public/library-2.png)
 
 ## Limitations
 
