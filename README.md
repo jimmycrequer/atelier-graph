@@ -99,3 +99,27 @@ npm run serve
 ```
 
 For more options, please refer to the [vue-cli documentation](https://cli.vuejs.org/).
+
+## Neo4j DB
+
+DB schema.
+
+![db-schema](https://github.com/jimmycrequer/atelier-graph/blob/master/public/db-schema.png)
+
+Example of Property hierarchy.
+
+```
+MATCH (p)-[r:TO*0..]->(pp {name: "究極の破壊力"})
+RETURN p
+```
+
+![db-properties](https://github.com/jimmycrequer/atelier-graph/blob/master/public/db-properties.png)
+
+Example of Item and its relationships, including custom craft.
+
+```
+MATCH (i:Item {name: "魔法の繊維"})-[r]-(n)
+RETURN *
+```
+
+![db-relationships](https://github.com/jimmycrequer/atelier-graph/blob/master/public/db-relationships.png)
